@@ -63,12 +63,12 @@
         position: fixed;
         left: 0;
         width: 100%;
-        height: 15px; /* Requested 15px height */
-        background: rgba(255, 255, 255, 0.08);
+        height: 1px; /* Modified to 1px as requested */
+        background: #ffffff;
         z-index: 51;
         pointer-events: none;
         display: none; /* Controlled by JS */
-        box-shadow: 0 0 10px rgba(255,255,255,0.05);
+        box-shadow: 0 0 2px rgba(255,255,255,0.1);
       }
 
       /* Film Dust (Random Particles) */
@@ -82,18 +82,6 @@
         pointer-events: none;
         display: none; /* Controlled by JS */
         filter: blur(0.5px);
-      }
-
-      /* Vertical Scratches (classic movie lines) */
-      .vertical-scratch {
-        position: fixed;
-        top: 0;
-        height: 100%;
-        width: 1px;
-        background: rgba(255, 255, 255, 0.15);
-        z-index: 51;
-        pointer-events: none;
-        display: none;
       }
 
       /* Retro Scrollbar */
@@ -148,8 +136,8 @@
         line.className = 'film-scratch';
         // Random vertical position
         line.style.top = Math.random() * 100 + 'vh';
-        // Random opacity for jitter
-        line.style.opacity = Math.random() * 0.5 + 0.1;
+        // Random opacity for jitter (10% to 30% as requested)
+        line.style.opacity = Math.random() * 0.2 + 0.1;
         
         container.appendChild(line);
         line.style.display = 'block';
@@ -182,23 +170,12 @@
         }, 100 + Math.random() * 300);
       };
 
-      // 3. Vertical Scratches
-      const createVerticalScratch = () => {
-        const scratch = document.createElement('div');
-        scratch.className = 'vertical-scratch';
-        scratch.style.left = Math.random() * 100 + 'vw';
-        container.appendChild(scratch);
-        scratch.style.display = 'block';
-        setTimeout(() => scratch.remove(), 200 + Math.random() * 400);
-      }
-
       // Loop for effects
       setInterval(() => {
         // Random chance to spawn effects per tick
         if (Math.random() > 0.7) createScratchLine(); 
         if (Math.random() > 0.3) createDust(); // More dust
         if (Math.random() > 0.3) createDust(); // Double dust sometimes
-        if (Math.random() > 0.9) createVerticalScratch();
       }, 100); // Check every 100ms
     </script>
   <script type="module" src="/index.tsx"></script>
