@@ -127,7 +127,7 @@ export default function App() {
       {/* Retro Toast */}
       <div className={`fixed top-8 left-1/2 -translate-x-1/2 z-[70] transition-all duration-500 transform ${toast.visible ? 'translate-y-0 opacity-100' : '-translate-y-8 opacity-0 pointer-events-none'}`}>
         <div className="bg-white text-black px-6 py-3 font-bold font-mono border-2 border-neutral-400 shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-          &gt; {toast.message}
+          {">"} {toast.message}
         </div>
       </div>
 
