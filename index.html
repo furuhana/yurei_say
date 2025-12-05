@@ -113,15 +113,26 @@
         filter: blur(0.5px);
       }
 
-      /* Retro Scrollbar */
+      /* 
+         RETRO SCROLLBAR - STRUCTURAL GRID LOOK 
+         The border-left on the track creates the "separated line" effect 
+      */
       ::-webkit-scrollbar {
-        width: 10px;
+        width: 16px; /* Wide enough to look like a grid column */
         background: #050505;
-        border-left: 1px solid var(--terminal-green-dim);
       }
+      
+      ::-webkit-scrollbar-track {
+        background: #050505;
+        border-left: 1px solid var(--terminal-green); /* The separator line */
+      }
+      
       ::-webkit-scrollbar-thumb {
         background: var(--terminal-green-dim);
+        border: 2px solid #050505; /* Inner padding for the thumb */
+        border-left: none; /* Connect to the track border */
       }
+      
       ::-webkit-scrollbar-thumb:hover {
         background: var(--terminal-green);
       }
