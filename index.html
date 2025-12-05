@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ghost Tram | 幽灵電车</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Noto+Sans+SC:wght@400;700;900&display=swap');
+
+      body {
+        font-family: 'Courier Prime', 'Noto Sans SC', monospace;
+        background-color: #050505;
+        color: #CCC3B1; /* Updated to requested color */
+        overflow-x: hidden;
+      }
+
+      /* CRT Noise Effect */
+      .noise-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 50;
+        opacity: 0.05; 
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        background-repeat: repeat;
+        animation: noiseAnimation 0.2s steps(3) infinite;
+      }
+
+      @keyframes noiseAnimation {
+        0% { background-position: 0 0; }
+        25% { background-position: -5px -5px; }
+        50% { background-position: 5px 5px; }
+        75% { background-position: -5px 5px; }
+        100% { background-position: 0 0; }
+      }
+
+      /* Scanline Effect */
+      .scanlines {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0),
+          rgba(255, 255, 255, 0) 50%,
+          rgba(0, 0, 0, 0.2) 50%,
+          rgba(0, 0, 0, 0.2)
+        );
+        background-size: 100% 4px;
+        z-index: 49;
+        pointer-events: none;
+        opacity: 0.3;
+      }
+
+      /* Film Scratch Line (Jumping) */
+      .film-scratch {
+        position: fixed;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: #CCC3B1; /* Updated color */
+        z-index: 51;
+        pointer-events: none;
+        display: none; /* Controlled by JS */
+        box-shadow: 0 0 2px rgba(204, 195, 177, 0.2);
+      }
+
+      /* Film Dust (Random Particles) */
+      .film-dust {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background-color: rgba(204, 195, 177, 0.4); /* Updated color */
+        border-radius: 50%;
+        z-index: 51;
+        pointer-events: none;
+        display: none; /* Controlled by JS */
+        filter: blur(0.5px);
+      }
+
+      /* Retro Scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+        background: #050505;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #2a2a2a;
+        border: 1px solid #4a4a4a;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #4a4a4a;
+      }
+
+      .text-glow {
+        text-shadow: 0 0 8px rgba(204, 195, 177, 0.5); /* Updated glow color */
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "date-fns": "https://aistudiocdn.com/date-fns@^4.1.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "google-auth-library": "https://aistudiocdn.com/google-auth-library@^10.5.0",
+    "google-spreadsheet": "https://aistudiocdn.com/google-spreadsheet@^5.0.2",
+    "swr": "https://aistudiocdn.com/swr@^2.3.2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div class="noise-overlay"></div>
+    <div class="scanlines"></div>
+    
+    <!-- Film Effects Container -->
+    <div id="film-effects-container"></div>
+
+    <div id="root"></div>
+
+    <script>
+      // Old Movie Artifact Simulator
+      const container = document.getElementById('film-effects-container');
+
+      // 1. Jumping Horizontal Lines
+      const createScratchLine = () => {
+        const line = document.createElement('div');
+        line.className = 'film-scratch';
+        // Random vertical position
+        line.style.top = Math.random() * 100 + 'vh';
+        // Random opacity for jitter (2% to 8% as requested)
+        line.style.opacity = Math.random() * 0.06 + 0.02;
+        
+        container.appendChild(line);
+        line.style.display = 'block';
+
+        // Remove quickly to simulate a flash
+        setTimeout(() => {
+          line.remove();
+        }, 50 + Math.random() * 100); // Lasts 50-150ms
+      };
+
+      // 2. Random Dust Particles
+      const createDust = () => {
+        const dust = document.createElement('div');
+        dust.className = 'film-dust';
+        // Random coordinates
+        dust.style.top = Math.random() * 100 + 'vh';
+        dust.style.left = Math.random() * 100 + 'vw';
+        // Random slight size variation
+        const size = 3 + Math.random() * 4; // 3px to 7px
+        dust.style.width = size + 'px';
+        dust.style.height = size + 'px';
+        dust.style.opacity = Math.random() * 0.4 + 0.1;
+
+        container.appendChild(dust);
+        dust.style.display = 'block';
+
+        // Dust stays a bit longer but might flicker
+        setTimeout(() => {
+          dust.remove();
+        }, 100 + Math.random() * 300);
+      };
+
+      // Loop for effects
+      setInterval(() => {
+        // Random chance to spawn effects per tick
+        if (Math.random() > 0.7) createScratchLine(); 
+        if (Math.random() > 0.3) createDust(); // More dust
+        if (Math.random() > 0.3) createDust(); // Double dust sometimes
+      }, 100); // Check every 100ms
+    </script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
