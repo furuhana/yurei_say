@@ -191,6 +191,16 @@ export default function App() {
               GHOST TRAM // SWISS GRID
             </h2>
           </div>
+          {/* ASCII Art Decor - Right Aligned in Title Area */}
+          <div className="hidden xl:flex ml-auto mr-8 flex-col items-end text-[#00A651] text-[10px] leading-[0.8] font-mono tracking-tighter opacity-80">
+            <pre className="whitespace-pre">
+              {`////////////////////////////
+//////////////////////////////////_
+///////////////////////////////////
+/////////////////////////////////////////_
+////////////////////////////////////`}
+            </pre>
+          </div>
         </div>
 
         {/* Audio Module (Fixed) */}
@@ -198,7 +208,7 @@ export default function App() {
 
         {/* Profile Trigger (Fixed) */}
         <div 
-          className="w-32 md:w-48 h-full border-l border-[#00A651] bg-diagonal-stripes relative group cursor-pointer hover:bg-diagonal-stripes-light transition-all shrink-0 flex items-center justify-center"
+          className="w-32 md:w-48 h-full border-l border-[#00A651] bg-[#F5F3EF] relative group cursor-pointer hover:bg-[#00A651] hover:text-[#F5F3EF] transition-colors shrink-0 flex items-center justify-center"
           onClick={() => setIsModalOpen(true)}
         >
           <div className="absolute top-1 right-2 text-[8px] font-bold tracking-widest bg-[#F5F3EF] px-1 border border-[#00A651] text-[#00A651]">
@@ -210,11 +220,14 @@ export default function App() {
         </div>
       </header>
 
+      {/* Filler Bar below Header */}
+      <div className="h-[6px] w-full bg-[#F5F3EF] border-b border-[#00A651] shrink-0"></div>
+
       {/* 2. Main Content (Scrollable List) */}
       <main className="flex-1 min-h-0 flex flex-col relative">
-        {/* Sidebar Decor */}
-        <div className="absolute left-0 top-0 bottom-0 w-4 md:w-8 border-r border-[#00A651] bg-diagonal-stripes z-10 hidden md:block"></div>
-        <div className="absolute right-0 top-0 bottom-0 w-4 md:w-8 border-l border-[#00A651] bg-diagonal-stripes z-10 hidden md:block"></div>
+        {/* Sidebar Decor - Solid Color */}
+        <div className="absolute left-0 top-0 bottom-0 w-4 md:w-8 border-r border-[#00A651] bg-[#F5F3EF] z-10 hidden md:block"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-4 md:w-8 border-l border-[#00A651] bg-[#F5F3EF] z-10 hidden md:block"></div>
 
         {/* Scroll Container */}
         <div className="flex-1 overflow-y-auto md:mx-8">
@@ -228,7 +241,7 @@ export default function App() {
       </main>
 
       {/* 3. Footer Input (Fixed) */}
-      <div className="h-16 border-t border-[#00A651] relative shrink-0 z-20">
+      <div className="h-12 border-t border-[#00A651] relative shrink-0 z-20">
          <GuestbookForm 
           onSendMessage={handleSendMessage} 
           disabled={isLoading} 
