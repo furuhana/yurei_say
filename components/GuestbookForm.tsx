@@ -24,31 +24,40 @@ export const GuestbookForm: React.FC<InputBarProps> = ({ onSendMessage, disabled
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full z-40 px-4 pb-6 pt-4 bg-gradient-to-t from-[#050505] via-[#050505] to-transparent">
-      <div className="max-w-2xl mx-auto">
-        <form onSubmit={handleSubmit} className="flex gap-0 shadow-[0_0_15px_rgba(0,0,0,0.8)]">
+    <div className="w-full h-full">
+      <form onSubmit={handleSubmit} className="grid grid-cols-6 w-full h-full">
+        {/* Cell 1: Input Field (5/6 cols ~ 83%) */}
+        <div className="col-span-5 relative border-r border-[#00D47E]">
+           <div className="absolute top-1 left-2 text-[8px] md:text-[10px] text-[#00D47E]/50 font-mono tracking-widest pointer-events-none">
+            INPUT_TERMINAL_01
+          </div>
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             disabled={disabled || isSending}
             placeholder="想起来了什么？"
-            className="flex-1 bg-black border-2 border-[#CCC3B1]/30 border-r-0 text-[#CCC3B1] px-4 py-3 focus:outline-none focus:border-[#CCC3B1] focus:ring-0 transition-all font-mono placeholder-[#CCC3B1]/30"
+            className="w-full h-full bg-black text-[#00D47E] px-4 pt-4 pb-2 focus:outline-none placeholder-[#00D47E]/30 font-mono text-lg"
             autoFocus
           />
-          <button
-            type="submit"
-            disabled={disabled || isSending || !message.trim()}
-            className="bg-[#1a1a1a] border-2 border-[#CCC3B1]/30 border-l-0 text-[#CCC3B1] px-6 hover:bg-[#2a2a2a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center group"
-          >
-            {isSending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            )}
-          </button>
-        </form>
-      </div>
+        </div>
+
+        {/* Cell 2: Submit Button (1/6 cols ~ 17%) */}
+        <button
+          type="submit"
+          disabled={disabled || isSending || !message.trim()}
+          className="col-span-1 bg-black hover:bg-[#00D47E] text-[#00D47E] hover:text-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center group relative"
+        >
+          <div className="absolute top-1 right-2 text-[8px] md:text-[10px] opacity-50 font-mono tracking-widest group-hover:text-black">
+            SEND_CMD
+          </div>
+          {isSending ? (
+            <Loader2 className="w-6 h-6 animate-spin" />
+          ) : (
+            <Send className="w-6 h-6 group-hover:scale-110 transition-transform" />
+          )}
+        </button>
+      </form>
     </div>
   );
 };

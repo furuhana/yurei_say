@@ -8,11 +8,41 @@
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Noto+Sans+SC:wght@400;700;900&display=swap');
 
+      :root {
+        --terminal-green: #00D47E;
+        --terminal-green-dim: rgba(0, 212, 126, 0.3);
+        --bg-black: #050505;
+      }
+
+      html, body, #root {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
       body {
         font-family: 'Courier Prime', 'Noto Sans SC', monospace;
+        background-color: var(--bg-black);
+        color: var(--terminal-green);
+        overflow: hidden; /* App.tsx handles scrolling */
+      }
+
+      /* Force sharp corners everywhere */
+      * {
+        border-radius: 0 !important;
+      }
+
+      /* Diagonal Stripes Pattern */
+      .bg-diagonal-stripes {
         background-color: #050505;
-        color: #CCC3B1; /* Updated to requested color */
-        overflow-x: hidden;
+        background-image: repeating-linear-gradient(
+          -45deg,
+          var(--terminal-green-dim),
+          var(--terminal-green-dim) 1px,
+          transparent 1px,
+          transparent 6px
+        );
       }
 
       /* CRT Noise Effect */
@@ -64,11 +94,11 @@
         left: 0;
         width: 100%;
         height: 1px;
-        background: #CCC3B1; /* Updated color */
+        background: var(--terminal-green);
         z-index: 51;
         pointer-events: none;
         display: none; /* Controlled by JS */
-        box-shadow: 0 0 2px rgba(204, 195, 177, 0.2);
+        box-shadow: 0 0 4px var(--terminal-green);
       }
 
       /* Film Dust (Random Particles) */
@@ -76,8 +106,7 @@
         position: fixed;
         width: 4px;
         height: 4px;
-        background-color: rgba(204, 195, 177, 0.4); /* Updated color */
-        border-radius: 50%;
+        background-color: var(--terminal-green);
         z-index: 51;
         pointer-events: none;
         display: none; /* Controlled by JS */
@@ -88,17 +117,17 @@
       ::-webkit-scrollbar {
         width: 10px;
         background: #050505;
+        border-left: 1px solid var(--terminal-green-dim);
       }
       ::-webkit-scrollbar-thumb {
-        background: #2a2a2a;
-        border: 1px solid #4a4a4a;
+        background: var(--terminal-green-dim);
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #4a4a4a;
+        background: var(--terminal-green);
       }
 
       .text-glow {
-        text-shadow: 0 0 8px rgba(204, 195, 177, 0.5); /* Updated glow color */
+        text-shadow: 0 0 8px rgba(0, 212, 126, 0.5);
       }
     </style>
   <script type="importmap">
@@ -156,7 +185,7 @@
         dust.style.top = Math.random() * 100 + 'vh';
         dust.style.left = Math.random() * 100 + 'vw';
         // Random slight size variation
-        const size = 3 + Math.random() * 4; // 3px to 7px
+        const size = 2 + Math.random() * 3; 
         dust.style.width = size + 'px';
         dust.style.height = size + 'px';
         dust.style.opacity = Math.random() * 0.4 + 0.1;

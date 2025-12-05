@@ -29,7 +29,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 }) => {
   const [formData, setFormData] = useState(currentProfile);
 
-  // Sync state when profile changes or modal opens
   useEffect(() => {
     setFormData(currentProfile);
   }, [currentProfile, isOpen]);
@@ -48,81 +47,95 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm transition-all duration-300">
-      <div className="bg-neutral-900 border-2 border-[#CCC3B1]/30 w-full max-w-md p-6 relative shadow-[0_0_20px_rgba(204,195,177,0.1)]">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-none">
+      <div className="bg-black border border-[#00D47E] w-full max-w-md relative shadow-[0_0_0_1px_rgba(0,212,126,0.3)]">
         
-        <button 
-          onClick={onClose}
-          className="absolute top-4 right-4 text-[#CCC3B1]/50 hover:text-[#CCC3B1] transition-colors"
-        >
-          <X className="w-6 h-6" />
-        </button>
-
-        <div className="flex items-center gap-3 mb-8 border-b border-[#CCC3B1]/20 pb-4">
-          <div className="p-2 bg-neutral-800 border border-[#CCC3B1]/30 rounded">
-            <Ghost className="w-6 h-6 text-[#CCC3B1]" />
+        {/* Modal Header */}
+        <div className="flex items-center justify-between p-4 border-b border-[#00D47E]">
+          <div className="flex items-center gap-3">
+             <div className="p-1 border border-[#00D47E] bg-[#00D47E]/10">
+               <Ghost className="w-5 h-5 text-[#00D47E]" />
+             </div>
+             <div className="flex flex-col leading-none">
+               <h2 className="text-lg font-bold tracking-widest uppercase text-[#00D47E]">幽灵证件</h2>
+               <span className="text-[10px] font-mono text-[#00D47E]/60">ID_CONFIGURATION</span>
+             </div>
           </div>
-          <h2 className="text-xl font-bold tracking-widest uppercase text-[#CCC3B1]">幽灵证件</h2>
+          <button 
+            onClick={onClose}
+            className="text-[#00D47E] hover:bg-[#00D47E] hover:text-black p-1 transition-colors border border-transparent hover:border-[#00D47E]"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="block text-xs uppercase tracking-wider text-[#CCC3B1]/70">
-              名为
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="flex-1 bg-black border border-[#CCC3B1]/30 text-[#CCC3B1] px-4 py-3 focus:outline-none focus:border-[#CCC3B1] focus:ring-1 focus:ring-[#CCC3B1] transition-all font-mono"
-                placeholder="你是谁？"
-              />
-              <button
-                type="button"
-                onClick={handleRandomName}
-                className="bg-neutral-800 border border-[#CCC3B1]/30 text-[#CCC3B1] px-3 hover:bg-neutral-700 hover:border-[#CCC3B1] transition-colors"
-                title="随机生成名字"
-              >
-                <Dice5 className="w-5 h-5" />
-              </button>
+        {/* Modal Content */}
+        <div className="p-6 bg-diagonal-stripes">
+          <form onSubmit={handleSubmit} className="space-y-6 bg-black p-6 border border-[#00D47E]">
+            
+            <div className="space-y-1">
+              <label className="flex justify-between text-[10px] uppercase tracking-wider text-[#00D47E]/70 font-mono">
+                <span>名为 / ALIAS</span>
+                <span>REQ*</span>
+              </label>
+              <div className="flex gap-0 border border-[#00D47E]">
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="flex-1 bg-black text-[#00D47E] px-4 py-3 focus:outline-none focus:bg-[#00D47E]/10 transition-colors font-mono"
+                  placeholder="你是谁？"
+                />
+                <button
+                  type="button"
+                  onClick={handleRandomName}
+                  className="bg-[#00D47E]/10 text-[#00D47E] px-4 hover:bg-[#00D47E] hover:text-black transition-colors border-l border-[#00D47E]"
+                  title="RANDOM"
+                >
+                  <Dice5 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <label className="block text-xs uppercase tracking-wider text-[#CCC3B1]/70">
-              时空坐标 (日期/地点)
-            </label>
-            <input
-              type="text"
-              value={formData.date}
-              onChange={(e) => setFormData({...formData, date: e.target.value})}
-              className="w-full bg-black border border-[#CCC3B1]/30 text-[#CCC3B1] px-4 py-3 focus:outline-none focus:border-[#CCC3B1] focus:ring-1 focus:ring-[#CCC3B1] transition-all font-mono"
-              placeholder="身处何地/何时？"
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="block text-[10px] uppercase tracking-wider text-[#00D47E]/70 font-mono">
+                时空坐标 / SPACE-TIME
+              </label>
+              <div className="border border-[#00D47E]">
+                <input
+                  type="text"
+                  value={formData.date}
+                  onChange={(e) => setFormData({...formData, date: e.target.value})}
+                  className="w-full bg-black text-[#00D47E] px-4 py-3 focus:outline-none focus:bg-[#00D47E]/10 transition-colors font-mono"
+                  placeholder="身处何地？"
+                />
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <label className="block text-xs uppercase tracking-wider text-[#CCC3B1]/70">
-              设定
-            </label>
-            <textarea
-              value={formData.oc}
-              onChange={(e) => setFormData({...formData, oc: e.target.value})}
-              rows={3}
-              className="w-full bg-black border border-[#CCC3B1]/30 text-[#CCC3B1] px-4 py-3 focus:outline-none focus:border-[#CCC3B1] focus:ring-1 focus:ring-[#CCC3B1] transition-all font-mono resize-none"
-              placeholder="描述你当前的状态..."
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="block text-[10px] uppercase tracking-wider text-[#00D47E]/70 font-mono">
+                设定 / SETTING (OC)
+              </label>
+              <div className="border border-[#00D47E]">
+                <textarea
+                  value={formData.oc}
+                  onChange={(e) => setFormData({...formData, oc: e.target.value})}
+                  rows={3}
+                  className="w-full bg-black text-[#00D47E] px-4 py-3 focus:outline-none focus:bg-[#00D47E]/10 transition-colors font-mono resize-none"
+                  placeholder="状态描述..."
+                />
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            className="w-full bg-[#CCC3B1] hover:bg-[#e0d8c8] text-black font-bold py-3 px-4 flex items-center justify-center gap-2 transition-transform active:scale-95 uppercase tracking-wider border-2 border-transparent hover:border-black"
-          >
-            <Save className="w-4 h-4" />
-            <span>保存身份</span>
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="w-full bg-[#00D47E] hover:bg-[#00ff41] text-black font-bold py-3 px-4 flex items-center justify-center gap-2 uppercase tracking-widest border border-[#00D47E] mt-4"
+            >
+              <Save className="w-4 h-4" />
+              <span>OVERWRITE_DATA</span>
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
