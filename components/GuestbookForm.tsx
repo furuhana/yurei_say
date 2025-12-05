@@ -32,14 +32,14 @@ export const GuestbookForm: React.FC<InputBarProps> = ({ onSendMessage, disabled
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             disabled={disabled || isSending}
-            placeholder="向集体意识广播讯号..."
-            className="flex-1 bg-black border-2 border-neutral-600 border-r-0 text-white px-4 py-3 focus:outline-none focus:border-white focus:ring-0 transition-all font-mono placeholder-neutral-600"
+            placeholder="想起来了什么？"
+            className="flex-1 bg-black border-2 border-[#CCC3B1]/30 border-r-0 text-[#CCC3B1] px-4 py-3 focus:outline-none focus:border-[#CCC3B1] focus:ring-0 transition-all font-mono placeholder-[#CCC3B1]/30"
             autoFocus
           />
           <button
             type="submit"
             disabled={disabled || isSending || !message.trim()}
-            className="bg-neutral-800 border-2 border-neutral-600 border-l-0 text-white px-6 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center group"
+            className="bg-[#1a1a1a] border-2 border-[#CCC3B1]/30 border-l-0 text-[#CCC3B1] px-6 hover:bg-[#2a2a2a] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center group"
           >
             {isSending ? (
               <Loader2 className="w-5 h-5 animate-spin" />
