@@ -1,12 +1,13 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import useSWR from 'swr';
 import { GuestbookForm } from './components/GuestbookForm';
 import { GuestbookList } from './components/GuestbookList';
 import { UserProfileModal } from './components/UserProfileModal';
+import { MagneticField, MagneticState } from './components/MagneticField';
 import { fetchMessages, postMessage, deleteMessage } from './services/guestbookService';
 import { GuestEntry } from './types';
-import { Ghost, Play, Pause, Volume2 } from 'lucide-react';
+import { Ghost, Volume2 } from 'lucide-react';
 
 interface UserProfile {
   name: string;
@@ -44,16 +45,6 @@ const GhostTramLogo = (props: React.SVGProps<SVGSVGElement>) => (
     <path d="M284.86 4081.12C287.27 4084.68 289.71 4088.22 292.15 4091.76C366.81 3998.65 421.98 3891.49 454.71 3775.03C387.14 3634.14 349.26 3476.41 349.26 3310H49.2598C49.2598 3496.1 85.7398 3676.71 157.69 3846.82C192.27 3928.56 235.05 4007.39 284.86 4081.12Z" fill="currentColor"/>
     <path d="M1238.53 4372.28C1045.22 4337.85 869.56 4251.76 726.38 4128.85C614.21 4145.91 507.49 4183.72 410.49 4240.47C424.39 4255.67 438.61 4270.56 453.16 4285.1C515.53 4347.47 584.16 4404.09 657.14 4453.4C730.87 4503.21 809.7 4546 891.44 4580.57C1034.78 4641.2 1185.59 4676.61 1340.84 4686.26C1326.62 4575.96 1292.06 4469.88 1238.52 4372.28H1238.53Z" fill="currentColor"/>
     <path d="M1386.26 1506V1620H1470.26V1506H1629.84C1522.61 1166.97 1468.26 814.89 1468.26 459.11V0H1388.26V459.11C1388.26 814.88 1333.9 1166.96 1226.68 1506H1386.26Z" fill="currentColor"/>
-    <path d="M1777.69 1344.13C1732.33 1298.77 1679.49 1263.15 1620.63 1238.25C1612.34 1234.74 1603.98 1231.48 1595.55 1228.44C1609.28 1288.1 1624.63 1347.45 1641.57 1406.42C1717.11 1462.7 1769.79 1548.04 1782.89 1645.75C1783.37 1649.32 1786.58 1651.85 1790.17 1651.58C1810.49 1650.03 1830.95 1649.25 1851.53 1649.25C1872.11 1649.25 1892.38 1650.02 1912.62 1651.56C1916.87 1651.88 1920.38 1648.31 1919.96 1644.07C1915.08 1594.83 1902.92 1546.94 1883.56 1501.18C1858.67 1442.33 1823.05 1389.48 1777.68 1344.12L1777.69 1344.13Z" fill="currentColor"/>
-    <path d="M1199.16 2093.41C1196.52 2088.94 1190.06 2088.94 1187.42 2093.41L1128.83 2192.6C1127.13 2195.48 1123.38 2196.43 1120.53 2194.68C952.3 2091 839.94 1905.05 840.02 1693.34C840.12 1419.37 1029.12 1188.21 1283.4 1123.43C1292.88 1075.39 1301.34 1027.17 1308.75 978.79C1253.02 988.03 1198.66 1003.79 1146.21 1025.98C1059.92 1062.48 982.44 1114.71 915.92 1181.23C849.4 1247.75 797.17 1325.23 760.67 1411.52C722.87 1500.89 703.7 1595.79 703.7 1693.57C703.7 1791.35 722.87 1886.25 760.67 1975.62C797.17 2061.91 849.4 2139.39 915.92 2205.91C956.99 2246.98 1002.25 2282.6 1051.17 2312.44C1053.98 2314.15 1054.9 2317.79 1053.23 2320.62L983.4 2438.84C980.72 2443.38 983.99 2449.12 989.27 2449.12H1397.33C1402.61 2449.12 1405.88 2443.38 1403.2 2438.84L1199.17 2093.43L1199.16 2093.41Z" fill="currentColor"/>
-    <path d="M781.31 2162.85C784.12 2160.59 784.64 2156.53 782.54 2153.59C758.78 2120.31 737.67 2085.24 719.3 2048.55C717.39 2044.73 712.5 2043.56 709.08 2046.12C690.25 2060.22 672.37 2075.69 655.54 2092.53C610.18 2137.89 574.56 2190.73 549.66 2249.59C523.87 2310.56 510.8 2375.28 510.8 2441.96C510.8 2508.64 523.88 2573.37 549.66 2634.33C574.55 2693.18 610.17 2746.03 655.54 2791.39C700.9 2836.75 753.74 2872.37 812.6 2897.27C873.57 2923.06 938.29 2936.13 1004.97 2936.13C1071.65 2936.13 1136.38 2923.05 1197.34 2897.27C1256.19 2872.38 1309.04 2836.76 1354.4 2791.39C1399.76 2746.02 1435.38 2693.19 1460.28 2634.33C1476.64 2595.64 1487.87 2555.43 1493.9 2514.18C1494.5 2510.06 1491.32 2506.35 1487.15 2506.35H1362.64C1359.37 2506.35 1356.58 2508.68 1355.95 2511.89C1323.55 2674.78 1180.24 2798.2 1008.35 2799.79C811.64 2801.62 647.64 2639.62 647.13 2442.9C646.84 2329.76 699.33 2228.66 781.31 2162.84V2162.85Z" fill="currentColor"/>
-    <path d="M2410.26 1759H2530.26C2530.26 1610.26 2501.11 1465.93 2443.63 1330.03C2416.01 1264.72 2381.82 1201.73 2342.02 1142.82C2302.61 1084.48 2257.34 1029.62 2207.49 979.77C2157.64 929.92 2102.78 884.66 2044.44 845.24C1985.53 805.44 1922.54 771.25 1857.23 743.63C1747.65 697.28 1632.58 669.37 1514.14 660.29C1516.51 700.8 1519.6 741.24 1523.4 781.59C2020.4 829.59 2410.26 1249.62 2410.26 1759Z" fill="currentColor"/>
-    <path d="M1214.56 1407.77C1231.66 1348.35 1247.13 1288.56 1260.97 1228.44C1252.55 1231.48 1244.18 1234.74 1235.89 1238.25C1177.04 1263.14 1124.19 1298.76 1078.83 1344.13C1033.47 1389.5 997.85 1442.33 972.95 1501.19C947.16 1562.16 934.09 1626.88 934.09 1693.56C934.09 1760.24 947.17 1824.97 972.95 1885.93C997.84 1944.78 1033.46 1997.63 1078.83 2042.99C1094.84 2059 1111.81 2073.76 1129.63 2087.29C1132.88 2089.76 1137.57 2088.85 1139.64 2085.34L1202.69 1978.6C1204.39 1975.73 1203.77 1972.03 1201.19 1969.91C1120.62 1903.59 1069.43 1802.82 1070.43 1690.34C1071.45 1575.51 1128.27 1472.75 1214.56 1407.78V1407.77Z" fill="currentColor"/>
-    <path d="M1855.62 2799.8C1811.39 2800.3 1768.96 2792.7 1729.71 2778.44C1726.42 2777.24 1722.77 2778.79 1721.27 2781.96C1703 2820.45 1681.75 2857.21 1657.67 2892.08C1656.41 2893.91 1657.13 2896.42 1659.18 2897.29C1720.15 2923.08 1784.87 2936.15 1851.55 2936.15C1918.23 2936.15 1982.96 2923.07 2043.92 2897.29C2102.77 2872.4 2155.62 2836.78 2200.98 2791.41C2246.34 2746.05 2281.96 2693.21 2306.86 2634.35C2332.65 2573.38 2345.72 2508.66 2345.72 2441.98C2345.72 2375.3 2332.64 2310.57 2306.86 2249.61C2281.97 2190.76 2246.35 2137.91 2200.98 2092.55C2155.62 2047.19 2102.78 2011.57 2043.92 1986.67C1982.95 1960.88 1918.23 1947.81 1851.55 1947.81C1784.87 1947.81 1726.52 1959.65 1668.2 1982.98C1664.31 1984.54 1662.7 1989.18 1664.83 1992.79L1728.27 2100.2C1729.92 2103 1733.31 2104.21 1736.38 2103.17C1772.53 2090.84 1811.27 2084.13 1851.54 2084.13C2048.49 2084.13 2208.78 2244.06 2209.39 2440.86C2209.98 2634.5 2049.25 2797.63 1851.56 2799.8Z" fill="currentColor"/>
-    <path d="M2519.14 2159.92C2482.64 2073.63 2430.41 1996.15 2363.89 1929.63C2297.37 1863.11 2219.89 1810.88 2133.6 1774.38C2044.23 1736.58 1949.33 1717.41 1851.55 1717.41C1753.77 1717.41 1658.87 1736.58 1569.5 1774.38C1547.5 1783.69 1526.08 1794.02 1505.26 1805.36C1502.42 1806.91 1498.87 1805.94 1497.22 1803.16L1434.14 1696.36C1431.5 1691.89 1425.04 1691.89 1422.4 1696.36L1225.33 2030.01C1222.65 2034.55 1225.92 2040.29 1231.2 2040.29H1625.34C1630.62 2040.29 1633.89 2034.55 1631.21 2030.01L1572.84 1931.18C1571.11 1928.25 1572.15 1924.45 1575.15 1922.85C1657.6 1878.77 1751.71 1853.74 1851.55 1853.74C2176.31 1853.74 2439.51 2116.7 2439.79 2441.47C2440.07 2766.06 2176.08 3030.21 1851.56 3030.21C1761.48 3030.21 1676.07 3009.85 1599.68 2973.5C1596.96 2972.21 1593.73 2972.84 1591.7 2975.06C1583.21 2984.39 1574.49 2993.54 1565.53 3002.51C1543.82 3024.22 1521.04 3044.53 1497.26 3063.41C1493.47 3066.42 1493.96 3072.33 1498.19 3074.69C1521.22 3087.56 1545.01 3099.2 1569.51 3109.56C1658.88 3147.36 1753.78 3166.53 1851.56 3166.53C1949.34 3166.53 2044.24 3147.36 2133.61 3109.56C2219.9 3073.06 2297.38 3020.83 2363.9 2954.31C2430.42 2887.79 2482.65 2810.31 2519.15 2724.02C2556.95 2634.65 2576.12 2539.75 2576.12 2441.97C2576.12 2344.19 2556.95 2249.29 2519.15 2159.92H2519.14Z" fill="currentColor"/>
-    <path d="M2020.96 1667.38C2062.64 1676.46 2103.55 1688.94 2143.49 1704.79C2147.94 1706.55 2152.76 1703.27 2152.8 1698.49C2152.81 1696.85 2152.82 1695.21 2152.82 1693.56C2152.82 1595.78 2133.65 1500.88 2095.85 1411.51C2059.35 1325.22 2007.12 1247.74 1940.6 1181.22C1874.08 1114.7 1796.6 1062.47 1710.31 1025.97C1657.85 1003.78 1603.49 988.03 1547.77 978.78C1555.18 1027.15 1563.63 1075.35 1573.11 1123.37C1817.54 1185.49 2001.38 1401.07 2015.6 1661.07C2015.77 1664.14 2017.95 1666.72 2020.96 1667.37V1667.38Z" fill="currentColor"/>
-    <path d="M1672.57 2724.02C1708.69 2638.63 1727.78 2548.19 1729.41 2455.01C1729.47 2451.73 1732.12 2449.1 1735.4 2449.1H1867.25C1872.53 2449.1 1875.8 2443.36 1873.12 2438.82L1669.1 2093.41C1666.46 2088.94 1660 2088.94 1657.36 2093.41L1453.33 2438.82C1450.65 2443.36 1453.92 2449.1 1459.2 2449.1H1587.06C1590.42 2449.1 1593.14 2451.85 1593.06 2455.21C1585.97 2774.53 1323.17 3031.9 1001.79 3030.19C677.44 3028.46 416.74 2766.31 416.74 2441.96C416.74 2240 519.05 2061.49 674.57 1955.53C677.11 1953.8 678.18 1950.61 677.19 1947.7C663.39 1906.99 652.99 1865.37 646.04 1823.04C645.26 1818.31 639.95 1815.87 635.83 1818.31C583.85 1849.1 535.93 1886.33 492.64 1929.62C426.12 1996.14 373.89 2073.62 337.39 2159.91C299.59 2249.28 280.42 2344.18 280.42 2441.96C280.42 2539.74 299.59 2634.64 337.39 2724.01C373.89 2810.3 426.12 2887.78 492.64 2954.3C559.16 3020.82 636.64 3073.05 722.93 3109.55C812.3 3147.35 907.2 3166.52 1004.98 3166.52C1102.76 3166.52 1197.66 3147.35 1287.03 3109.55C1373.32 3073.05 1450.8 3020.82 1517.32 2954.3C1583.84 2887.78 1636.07 2810.3 1672.57 2724.01V2724.02Z" fill="currentColor"/>
-    <path d="M1333.12 781.59C1336.92 741.24 1340.01 700.8 1342.38 660.29C1223.94 669.37 1108.88 697.28 999.29 743.63C933.98 771.25 870.99 805.44 812.08 845.24C753.74 884.65 698.88 929.92 649.03 979.77C599.18 1029.62 553.92 1084.48 514.5 1142.82C474.7 1201.73 440.51 1264.72 412.89 1330.03C355.41 1465.93 326.26 1610.25 326.26 1759H446.26C446.26 1249.62 836.12 829.59 1333.12 781.59Z" fill="currentColor"/>
   </svg>
 );
 
@@ -63,7 +54,6 @@ const BackgroundMusic = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Create audio instance
     const audio = new Audio('/bgm.mp3');
     audio.loop = true;
     audio.volume = 0.5;
@@ -128,6 +118,7 @@ export default function App() {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<{message: string, visible: boolean}>({ message: '', visible: false });
+  const [replyTo, setReplyTo] = useState<GuestEntry | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('ghostTramProfile');
@@ -137,6 +128,25 @@ export default function App() {
       setProfile(p => ({...p, date: new Date().toLocaleString('zh-CN')}));
     }
   }, []);
+
+  // Determine Magnetic State
+  const magneticState = useMemo(() => {
+    if (!entries) return MagneticState.OFF;
+
+    // Filter messages posted by current user
+    const myMessages = entries.filter(e => e.name === profile.name);
+    
+    if (myMessages.length === 0) {
+      return MagneticState.OFF; // State 3 (User has no posts)
+    }
+
+    // Check if any of my messages have replies
+    const myMessageIds = new Set(myMessages.map(e => e.id));
+    const hasReplies = entries.some(e => e.replyTo && myMessageIds.has(e.replyTo));
+
+    return hasReplies ? MagneticState.ACTIVE : MagneticState.INACTIVE; // State 1 or 2
+  }, [entries, profile.name]);
+
 
   const showToast = (msg: string) => {
     setToast({ message: msg, visible: true });
@@ -150,18 +160,25 @@ export default function App() {
   };
 
   const handleSendMessage = async (messageText: string) => {
+    // Optimistic ID must match what backend might produce or be temporary. 
+    // Backend uses Date.now + random, which is consistent with frontend gen here.
     const optimisticEntry: GuestEntry = {
-      id: Math.random().toString(36),
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
       name: profile.name,
       message: messageText,
       date: profile.date,
-      oc: profile.oc
+      oc: profile.oc,
+      replyTo: replyTo?.id
     };
+    
     const currentEntries = entries || [];
+    // Prepend (though list rendering logic will handle sorting)
     await mutate([optimisticEntry, ...currentEntries], false);
-    await postMessage(profile.name, messageText, profile.date, profile.oc);
+    
+    await postMessage(profile.name, messageText, profile.date, profile.oc, replyTo?.id);
     await mutate();
     showToast("MESSAGE TRANSMITTED");
+    setReplyTo(null);
   };
 
   const handleDeleteMessage = async (entry: GuestEntry) => {
@@ -191,14 +208,12 @@ export default function App() {
               GHOST TRAM // SWISS GRID
             </h2>
           </div>
-          {/* ASCII Art Decor - Right Aligned in Title Area */}
+          {/* ASCII Art Decor */}
           <div className="hidden xl:flex ml-auto mr-8 flex-col items-end text-[#00A651] text-[10px] leading-[0.8] font-mono tracking-tighter opacity-80">
             <pre className="whitespace-pre">
-              {`////////////////////////////
-//////////////////////////////////_
-///////////////////////////////////
-/////////////////////////////////////////_
-////////////////////////////////////`}
+{`.+------+ +------+ +------+ +------+ +------+.
+.' | .'| /| /| | | |\\ |\\ |. |.
++---+--+' | +-+----+ | +------+ | +----+-+ | +--+---+ | | | | | | | | | | | | | | | | | | | ,+--+---+ | +----+-+ +------+ +-+----+ | +---+--+ | |.' | .' |/ |/ | | | |. | . | +------+' +------+ +------+ +------++------+`}
             </pre>
           </div>
         </div>
@@ -223,30 +238,51 @@ export default function App() {
       {/* Filler Bar below Header */}
       <div className="h-[6px] w-full bg-[#F5F3EF] border-b border-[#00A651] shrink-0"></div>
 
-      {/* 2. Main Content (Scrollable List) */}
-      <main className="flex-1 min-h-0 flex flex-col relative">
-        {/* Sidebar Decor - Solid Color */}
+      {/* 2. Main Layout (Split View) */}
+      <main className="flex-1 min-h-0 flex relative">
+        {/* Sidebar Decor - Left */}
         <div className="absolute left-0 top-0 bottom-0 w-4 md:w-8 border-r border-[#00A651] bg-[#F5F3EF] z-10 hidden md:block"></div>
-        <div className="absolute right-0 top-0 bottom-0 w-4 md:w-8 border-l border-[#00A651] bg-[#F5F3EF] z-10 hidden md:block"></div>
 
-        {/* Scroll Container */}
-        <div className="flex-1 overflow-y-auto md:mx-8">
-           <GuestbookList 
-            entries={entries || []} 
-            isLoading={isLoading} 
-            isAdmin={profile.name === '露西'}
-            onDelete={handleDeleteMessage}
-          />
+        {/* 2a. Message Stream (Left Column) */}
+        <div className="flex-1 min-w-0 flex flex-col md:border-r border-[#00A651]">
+          {/* Container Scroll */}
+          <div className="flex-1 overflow-y-auto md:ml-8 relative">
+             <GuestbookList 
+              entries={entries || []} 
+              isLoading={isLoading} 
+              isAdmin={profile.name === '露西'}
+              onDelete={handleDeleteMessage}
+              onReply={(entry) => setReplyTo(entry)}
+            />
+          </div>
+          
+          {/* Footer Input */}
+          <div className="h-12 border-t border-[#00A651] shrink-0 relative z-20">
+             <GuestbookForm 
+              onSendMessage={handleSendMessage} 
+              disabled={isLoading}
+              replyToEntry={replyTo}
+              onCancelReply={() => setReplyTo(null)}
+            />
+          </div>
         </div>
-      </main>
 
-      {/* 3. Footer Input (Fixed) */}
-      <div className="h-12 border-t border-[#00A651] relative shrink-0 z-20">
-         <GuestbookForm 
-          onSendMessage={handleSendMessage} 
-          disabled={isLoading} 
-        />
-      </div>
+        {/* 2b. Magnetic Field Sidebar (Right Column - Desktop Only) */}
+        <div className="hidden lg:flex w-[400px] xl:w-[500px] shrink-0 flex-col border-l border-[#00A651] relative z-0">
+           {/* Visualizer */}
+           <MagneticField state={magneticState} username={profile.name} />
+           
+           {/* Filler at bottom to match input bar height */}
+           <div className="h-12 border-t border-[#00A651] flex items-center justify-between px-4 text-[#00A651] font-bold text-xs uppercase tracking-widest bg-[#F5F3EF]">
+              <span>SYSTEM_STATUS</span>
+              <span>ONLINE</span>
+           </div>
+        </div>
+        
+        {/* Sidebar Decor - Right (If Magnetic Field hidden) */}
+        <div className="absolute right-0 top-0 bottom-0 w-4 md:w-8 border-l border-[#00A651] bg-[#F5F3EF] z-10 lg:hidden block"></div>
+
+      </main>
 
       {/* Modals & Overlays */}
       <UserProfileModal 

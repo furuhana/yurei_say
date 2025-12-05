@@ -1,3 +1,4 @@
+
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 
@@ -45,37 +46,43 @@ export default async function handler(
 
     // 3. Handle Requests
     if (req.method === 'POST') {
-      // NOW accepting 'date' and 'oc' from the client side
-      const { name, message, date, oc } = req.body;
+      // NOW accepting 'replyTo' from the client side
+      const { name, message, date, oc, replyTo } = req.body;
 
       if (!name || !message) {
         return res.status(400).json({ error: 'Name and message are required' });
       }
 
-      // Map to lowercase headers strictly: date, name, message, oc
+      // Generate a simple unique ID (Timestamp + Random)
+      const uniqueId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+
+      // Map to lowercase headers strictly: date, name, message, oc, id, reply_to
       const newRow = {
+        id: uniqueId,
         name: name,
         message: message,
-        date: date || new Date().toLocaleString(), // Use client date or fallback, do not auto-generate new timestamp
+        date: date || new Date().toLocaleString(),
         oc: oc || '',
+        reply_to: replyTo || '',
       };
 
       await sheet.addRow(newRow);
-      return res.status(200).json({ status: 'success' });
+      return res.status(200).json({ status: 'success', id: uniqueId });
     } 
     
     if (req.method === 'GET') {
       const rows = await sheet.getRows();
       
       const entries = rows.map((row) => ({
-        id: String(row.rowNumber), // Return rowNumber as ID for deletion
+        id: row.get('id'), // Use the ID column, NOT rowNumber
         name: row.get('name'),
         message: row.get('message'),
         date: row.get('date'),
-        oc: row.get('oc'), // Retrieve the new column
+        oc: row.get('oc'), 
+        replyTo: row.get('reply_to'), // Map snake_case to camelCase
       }));
 
-      // Return most recent first
+      // Return most recent first (though threading logic might re-sort them)
       return res.status(200).json(entries.reverse());
     }
 
@@ -87,8 +94,8 @@ export default async function handler(
       }
 
       const rows = await sheet.getRows();
-      // Find row by rowNumber
-      const rowToDelete = rows.find((r) => String(r.rowNumber) === String(id));
+      // Find row by the 'id' column
+      const rowToDelete = rows.find((r) => r.get('id') === id);
 
       if (rowToDelete) {
         await rowToDelete.delete();
