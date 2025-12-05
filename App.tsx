@@ -196,12 +196,12 @@ export default function App() {
         {/* ROW 1: Header - Flexbox to create exact square on right */}
         <header className="flex h-32 md:h-48 border-b border-[#00D47E] shrink-0">
           {/* Main Title Area (Fills remaining space) */}
-          <div className="flex-1 p-4 md:p-8 flex flex-col justify-between relative">
+          <div className="flex-1 p-4 md:p-8 flex items-center justify-between relative overflow-hidden">
             <div className="absolute top-2 left-2 text-[10px] opacity-60 font-mono tracking-widest">
               SYS_VER_2.0
             </div>
             
-            <div className="flex items-center gap-4 h-full" style={{ opacity: titleOpacity }}>
+            <div className="flex items-center gap-4 h-full relative z-10" style={{ opacity: titleOpacity }}>
               <GhostTramLogo className="w-10 md:w-16 h-auto text-[#00D47E] shrink-0" />
               <div>
                 <h1 className="text-3xl md:text-7xl font-black tracking-tighter text-[#00D47E] uppercase leading-none">
@@ -211,6 +211,16 @@ export default function App() {
                   来自各种时空中的幽灵们
                 </h2>
               </div>
+            </div>
+
+            {/* ASCII Art Decoration - Hidden on small screens, right aligned */}
+            <div className="hidden xl:block font-mono text-[8px] leading-[8px] text-[#00D47E]/40 whitespace-pre text-right select-none ml-4 overflow-hidden">
+{`     _____/\\/\\__________/\\/\\____/\\/\\______/\\/\\____/\\/\\______/\\/\\______/\\/\\__________/\\/\\__________________/\\/\\____/\\/\\/\\/\\____________/\\/\\____/\\/\\/\\/\\___
+    ___/\\/\\/\\/\\________/\\/\\__/\\/\\________/\\/\\____/\\/\\______/\\/\\/\\__/\\/\\/\\________/\\/\\/\\/\\________________/\\/\\__/\\/\\____/\\/\\__________/\\/\\__/\\/\\____/\\/\\_ 
+   _/\\/\\____/\\/\\______/\\/\\/\\/\\__________/\\/\\____/\\/\\______/\\/\\/\\/\\/\\/\\/\\______/\\/\\____/\\/\\______________/\\/\\__/\\/\\____/\\/\\__________/\\/\\__/\\/\\____/\\/\\_  
+  _/\\/\\/\\/\\/\\/\\______/\\/\\__/\\/\\________/\\/\\____/\\/\\______/\\/\\__/\\__/\\/\\______/\\/\\/\\/\\/\\/\\______/\\/\\____/\\/\\__/\\/\\____/\\/\\__/\\/\\____/\\/\\__/\\/\\____/\\/\\_   
+ _/\\/\\____/\\/\\______/\\/\\____/\\/\\________/\\/\\/\\/\\________/\\/\\______/\\/\\______/\\/\\____/\\/\\________/\\/\\/\\/\\______/\\/\\/\\/\\______/\\/\\/\\/\\______/\\/\\/\\/\\___    
+____________________________________________________________________________________________________________________________________________________     `}
             </div>
           </div>
 
@@ -233,9 +243,9 @@ export default function App() {
 
         {/* ROW 2: Main Content (Scrollable) */}
         <main className="relative flex-1 min-h-0 flex flex-col">
-          {/* Decorative Label - Added background to prevent ghosting overlap */}
-          <div className="absolute top-0 right-0 p-2 text-[10px] text-[#00D47E]/40 font-mono z-20 pointer-events-none bg-[#050505] border-b border-l border-[#00D47E]/20">
-            VIEWPORT_MAIN
+          {/* Decorative Label - Aligned with IDX column, cleared from scrollbar (22px from right) */}
+          <div className="absolute top-0 right-[22px] p-2 text-[10px] text-[#00D47E]/40 font-mono z-20 pointer-events-none bg-[#050505] border-b border-l border-[#00D47E]/20">
+            IDX_000
           </div>
 
           {/* Messages - Use overflow-y-scroll to ALWAYS show scrollbar track */}
