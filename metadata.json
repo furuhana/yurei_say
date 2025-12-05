@@ -1,0 +1,5 @@
+{
+  "name": "Next.js Google Sheets Guestbook",
+  "description": "A stylish guestbook app featuring a Next.js API route implementation for Google Sheets integration.",
+  "requestFramePermissions": []
+}
