@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import useSWR from 'swr';
 import { GuestbookForm } from './components/GuestbookForm';
 import { GuestbookList } from './components/GuestbookList';
 import { UserProfileModal } from './components/UserProfileModal';
 import { fetchMessages, postMessage, deleteMessage } from './services/guestbookService';
 import { GuestEntry } from './types';
-import { Ghost } from 'lucide-react';
+import { Ghost, Play, Pause, Volume2 } from 'lucide-react';
 
 interface UserProfile {
   name: string;
@@ -57,73 +57,61 @@ const GhostTramLogo = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// Hook for complicated flickering logic
-const useBrokenLightEffect = () => {
-  const [opacity, setOpacity] = useState(1);
+// BACKGROUND MUSIC COMPONENT
+const BackgroundMusic = () => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-    let isActive = true;
-
-    const scheduleNextEvent = () => {
-      if (!isActive) return;
-      const isMode2 = Math.random() > 0.7;
-      if (isMode2) {
-        runMode2();
-      } else {
-        runMode1();
-      }
-    };
-
-    const runMode1 = () => {
-      const modeDuration = 2000 + Math.random() * 3000; 
-      const startTime = Date.now();
-
-      const flicker = () => {
-        if (!isActive) return;
-        
-        const now = Date.now();
-        if (now - startTime > modeDuration) {
-          scheduleNextEvent(); 
-          return;
-        }
-        setOpacity(0.85 + Math.random() * 0.15);
-        timeoutId = setTimeout(flicker, 50 + Math.random() * 150);
-      };
-      flicker();
-    };
-
-    const runMode2 = () => {
-      if (!isActive) return;
-      setOpacity(0.6);
-      timeoutId = setTimeout(() => {
-        if (!isActive) return;
-        const jitterDuration = 1000;
-        const jitterStart = Date.now();
-        const jitter = () => {
-          if (!isActive) return;
-          const now = Date.now();
-          if (now - jitterStart > jitterDuration) {
-            setOpacity(1);
-            timeoutId = setTimeout(scheduleNextEvent, 500 + Math.random() * 1000);
-            return;
-          }
-          setOpacity(0.85 + Math.random() * 0.05);
-          timeoutId = setTimeout(jitter, 50 + Math.random() * 100);
-        };
-        jitter();
-      }, 3000);
-    };
-
-    scheduleNextEvent();
+    // Create audio instance
+    const audio = new Audio('/bgm.mp3');
+    audio.loop = true;
+    audio.volume = 0.5;
+    audioRef.current = audio;
 
     return () => {
-      isActive = false;
-      clearTimeout(timeoutId);
+      audio.pause();
+      audioRef.current = null;
     };
   }, []);
 
-  return opacity;
+  const toggleAudio = () => {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(e => console.error("Playback prevented:", e));
+      setIsPlaying(true);
+    }
+  };
+
+  return (
+    <div 
+      onClick={toggleAudio}
+      className="w-32 md:w-48 h-full border-l border-[#00A651] relative cursor-pointer hover:bg-[#00A651] hover:text-[#F5F3EF] group transition-colors flex flex-col items-center justify-center select-none"
+    >
+      <div className="absolute top-1 left-2 text-[8px] font-bold tracking-widest">
+        AUDIO_MODULE
+      </div>
+      
+      <div className="flex items-center gap-2">
+        {isPlaying ? (
+          <div className="flex items-end gap-1 h-4">
+             <div className="eq-bar h-2 w-1 bg-current"></div>
+             <div className="eq-bar h-4 w-1 bg-current"></div>
+             <div className="eq-bar h-3 w-1 bg-current"></div>
+          </div>
+        ) : (
+          <Volume2 className="w-5 h-5 opacity-50" />
+        )}
+        <span className="font-bold text-sm tracking-widest">
+          {isPlaying ? '[ON]' : '[OFF]'}
+        </span>
+      </div>
+    </div>
+  );
 };
 
 export default function App() {
@@ -134,13 +122,12 @@ export default function App() {
   );
 
   const [profile, setProfile] = useState<UserProfile>({
-    name: '迷途幽灵_' + Math.floor(Math.random() * 1000),
+    name: 'Ghost_' + Math.floor(Math.random() * 1000),
     date: '',
     oc: '',
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<{message: string, visible: boolean}>({ message: '', visible: false });
-  const titleOpacity = useBrokenLightEffect();
 
   useEffect(() => {
     const saved = localStorage.getItem('ghostTramProfile');
@@ -159,7 +146,7 @@ export default function App() {
   const handleSaveProfile = (newProfile: UserProfile) => {
     setProfile(newProfile);
     localStorage.setItem('ghostTramProfile', JSON.stringify(newProfile));
-    showToast("身份设定已覆写 / IDENTITY OVERWRITTEN");
+    showToast("IDENTITY UPDATED");
   };
 
   const handleSendMessage = async (messageText: string) => {
@@ -174,99 +161,78 @@ export default function App() {
     await mutate([optimisticEntry, ...currentEntries], false);
     await postMessage(profile.name, messageText, profile.date, profile.oc);
     await mutate();
-    showToast("讯号已映射到集体意识 / SIGNAL BROADCASTED");
+    showToast("MESSAGE TRANSMITTED");
   };
 
   const handleDeleteMessage = async (entry: GuestEntry) => {
-    if (!confirm('确定要从集体意识中抹除此记忆吗？\nDELETE MEMORY?')) return;
+    if (!confirm('PERMANENTLY DELETE RECORD?')) return;
     const currentEntries = entries || [];
     const updatedEntries = currentEntries.filter(e => e.id !== entry.id);
     await mutate(updatedEntries, false);
     await deleteMessage(entry.id, profile.name);
     await mutate();
-    showToast("记忆已抹除 / MEMORY DELETED");
+    showToast("RECORD DELETED");
   };
 
   return (
-    <div className="h-[100dvh] w-screen bg-[#050505] p-2 md:p-6 flex flex-col overflow-hidden selection:bg-[#00D47E] selection:text-black font-sans relative z-10">
+    <div className="h-[100dvh] w-screen bg-[#F5F3EF] flex flex-col overflow-hidden selection:bg-[#00A651] selection:text-[#F5F3EF] font-sans relative">
       
-      {/* Root Grid Container - Floating "Sheet" effect */}
-      <div className="flex-1 border border-[#00D47E] flex flex-col relative shadow-[0_0_20px_rgba(0,212,126,0.1)] min-h-0">
+      {/* 1. Header Grid Row */}
+      <header className="flex h-24 md:h-32 border-b border-[#00A651] shrink-0 bg-[#F5F3EF] z-20">
         
-        {/* ROW 1: Header - Flexbox to create exact square on right */}
-        <header className="flex h-32 md:h-48 border-b border-[#00D47E] shrink-0">
-          {/* Main Title Area (Fills remaining space) */}
-          <div className="flex-1 p-4 md:p-8 flex items-center justify-between relative overflow-hidden">
-            <div className="absolute top-2 left-2 text-[10px] opacity-60 font-mono tracking-widest">
-              SYS_VER_2.0
-            </div>
-            
-            <div className="flex items-center gap-4 h-full relative z-10" style={{ opacity: titleOpacity }}>
-              <GhostTramLogo className="w-10 md:w-16 h-auto text-[#00D47E] shrink-0" />
-              <div>
-                <h1 className="text-3xl md:text-7xl font-black tracking-tighter text-[#00D47E] uppercase leading-none">
-                  幽灵電车
-                </h1>
-                <h2 className="text-xs md:text-sm font-mono text-[#00D47E]/70 tracking-[0.3em] mt-2 pl-1">
-                  来自各种时空中的幽灵们
-                </h2>
-              </div>
-            </div>
-
-            {/* ASCII Art Decoration - Hidden on small screens, right aligned */}
-            <div className="hidden xl:block font-mono text-[8px] leading-[8px] text-[#00D47E]/40 whitespace-pre text-right select-none ml-4 mr-[20px] overflow-hidden">
-{`     _____/\\/\\__________/\\/\\____/\\/\\______/\\/\\____/\\/\\______/\\/\\______/\\/\\__________/\\/\\__________________/\\/\\____/\\/\\/\\/\\____________/\\/\\____/\\/\\/\\/\\___
-    ___/\\/\\/\\/\\________/\\/\\__/\\/\\________/\\/\\____/\\/\\______/\\/\\/\\__/\\/\\/\\________/\\/\\/\\/\\________________/\\/\\__/\\/\\____/\\/\\__________/\\/\\__/\\/\\____/\\/\\_ 
-   _/\\/\\____/\\/\\______/\\/\\/\\/\\__________/\\/\\____/\\/\\______/\\/\\/\\/\\/\\/\\/\\______/\\/\\____/\\/\\______________/\\/\\__/\\/\\____/\\/\\__________/\\/\\__/\\/\\____/\\/\\_  
-  _/\\/\\/\\/\\/\\/\\______/\\/\\__/\\/\\________/\\/\\____/\\/\\______/\\/\\__/\\__/\\/\\______/\\/\\/\\/\\/\\/\\______/\\/\\____/\\/\\__/\\/\\____/\\/\\__/\\/\\____/\\/\\__/\\/\\____/\\/\\_   
- _/\\/\\____/\\/\\______/\\/\\____/\\/\\________/\\/\\/\\/\\________/\\/\\______/\\/\\______/\\/\\____/\\/\\________/\\/\\/\\/\\______/\\/\\/\\/\\______/\\/\\/\\/\\______/\\/\\/\\/\\___    
-____________________________________________________________________________________________________________________________________________________     `}
-            </div>
+        {/* Title Area (Flex Grow) */}
+        <div className="flex-1 p-4 md:p-6 flex items-center gap-4 md:gap-6 relative overflow-hidden">
+          <GhostTramLogo className="w-12 md:w-16 h-auto text-[#00A651] shrink-0" />
+          <div className="flex flex-col justify-center">
+            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-[#00A651] uppercase leading-[0.9] -ml-1">
+              幽灵電车
+            </h1>
+            <h2 className="text-xs md:text-sm font-bold text-[#00A651] tracking-[0.2em] mt-1">
+              GHOST TRAM // SWISS GRID
+            </h2>
           </div>
-
-          {/* Profile Trigger (Fixed Square on Right) */}
-          <div 
-            className="w-32 md:w-48 h-full border-l border-[#00D47E] bg-diagonal-stripes relative group cursor-pointer hover:bg-[#00D47E]/10 transition-colors shrink-0"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <div className="absolute top-2 right-2 text-[10px] opacity-60 font-mono tracking-widest bg-black px-1 border border-[#00D47E]/50">
-              UID_ACCESS
-            </div>
-            
-            <div className="h-full w-full flex items-center justify-center">
-              <div className="p-3 border border-[#00D47E] bg-black group-hover:bg-[#00D47E] group-hover:text-black transition-all">
-                <Ghost className="w-6 h-6 md:w-8 md:h-8" />
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* ROW 2: Main Content (Floating Messages) */}
-        <main className="relative flex-1 min-h-0 flex flex-col overflow-hidden">
-          {/* Decorative Label - Aligned with IDX column, cleared from scrollbar (22px from right) */}
-          <div className="absolute top-0 right-[22px] p-2 text-[10px] text-[#00D47E]/40 font-mono z-20 pointer-events-none bg-[#050505] border-b border-l border-[#00D47E]/20">
-            IDX_000
-          </div>
-
-          {/* Messages - Floating, so we HIDE overflow */}
-          <div className="flex-1 overflow-hidden relative w-full h-full">
-             <GuestbookList 
-              entries={entries || []} 
-              isLoading={isLoading} 
-              isAdmin={profile.name === '露西'}
-              onDelete={handleDeleteMessage}
-            />
-          </div>
-        </main>
-
-        {/* ROW 3: Footer Input Grid */}
-        <div className="h-14 border-t border-[#00D47E] relative shrink-0">
-           <GuestbookForm 
-            onSendMessage={handleSendMessage} 
-            disabled={isLoading} 
-          />
         </div>
 
+        {/* Audio Module (Fixed) */}
+        <BackgroundMusic />
+
+        {/* Profile Trigger (Fixed) */}
+        <div 
+          className="w-32 md:w-48 h-full border-l border-[#00A651] bg-diagonal-stripes relative group cursor-pointer hover:bg-diagonal-stripes-light transition-all shrink-0 flex items-center justify-center"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <div className="absolute top-1 right-2 text-[8px] font-bold tracking-widest bg-[#F5F3EF] px-1 border border-[#00A651] text-[#00A651]">
+            ID_CARD
+          </div>
+          <div className="p-4 border border-[#00A651] bg-[#F5F3EF] group-hover:bg-[#00A651] group-hover:text-[#F5F3EF] transition-colors">
+            <Ghost className="w-8 h-8" />
+          </div>
+        </div>
+      </header>
+
+      {/* 2. Main Content (Scrollable List) */}
+      <main className="flex-1 min-h-0 flex flex-col relative">
+        {/* Sidebar Decor */}
+        <div className="absolute left-0 top-0 bottom-0 w-4 md:w-8 border-r border-[#00A651] bg-diagonal-stripes z-10 hidden md:block"></div>
+        <div className="absolute right-0 top-0 bottom-0 w-4 md:w-8 border-l border-[#00A651] bg-diagonal-stripes z-10 hidden md:block"></div>
+
+        {/* Scroll Container */}
+        <div className="flex-1 overflow-y-auto md:mx-8">
+           <GuestbookList 
+            entries={entries || []} 
+            isLoading={isLoading} 
+            isAdmin={profile.name === '露西'}
+            onDelete={handleDeleteMessage}
+          />
+        </div>
+      </main>
+
+      {/* 3. Footer Input (Fixed) */}
+      <div className="h-16 border-t border-[#00A651] relative shrink-0 z-20">
+         <GuestbookForm 
+          onSendMessage={handleSendMessage} 
+          disabled={isLoading} 
+        />
       </div>
 
       {/* Modals & Overlays */}
@@ -277,9 +243,9 @@ ________________________________________________________________________________
         onSave={handleSaveProfile}
       />
 
-      {/* Retro Toast */}
-      <div className={`fixed top-8 left-1/2 -translate-x-1/2 z-[70] transition-all duration-200 transform ${toast.visible ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0 pointer-events-none'}`}>
-        <div className="bg-[#00D47E] text-black px-4 py-2 font-bold font-mono border border-[#00D47E] shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+      {/* Toast Notification */}
+      <div className={`fixed bottom-20 right-8 z-[70] transition-all duration-300 transform ${toast.visible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0 pointer-events-none'}`}>
+        <div className="bg-[#00A651] text-[#F5F3EF] px-6 py-3 font-bold text-sm uppercase tracking-widest shadow-[4px_4px_0px_rgba(0,0,0,0.1)]">
           {">"} {toast.message}
         </div>
       </div>
