@@ -13,6 +13,7 @@
         /* SWISS GRID PALETTE */
         --swiss-cream: #F5F3EF;
         --swiss-green: #00A651;
+        --swiss-gray: #E5E5E5; /* New Gray for stripes */
       }
 
       html, body, #root {
@@ -34,13 +35,13 @@
         border-radius: 0 !important;
       }
 
-      /* SWISS DIAGONAL PATTERN */
+      /* SWISS DIAGONAL PATTERN - GRAY */
       .bg-diagonal-stripes {
         background-color: var(--swiss-cream);
         background-image: repeating-linear-gradient(
           45deg,
-          var(--swiss-green),
-          var(--swiss-green) 1px,
+          var(--swiss-gray),
+          var(--swiss-gray) 1px,
           var(--swiss-cream) 1px,
           var(--swiss-cream) 4px
         );

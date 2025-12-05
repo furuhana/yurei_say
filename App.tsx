@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import useSWR from 'swr';
 import { GuestbookForm } from './components/GuestbookForm';
@@ -7,12 +6,55 @@ import { UserProfileModal } from './components/UserProfileModal';
 import { MagneticField, MagneticState } from './components/MagneticField';
 import { fetchMessages, postMessage, deleteMessage } from './services/guestbookService';
 import { GuestEntry } from './types';
-import { Ghost, Volume2 } from 'lucide-react';
+import { Ghost, Volume2, AlertTriangle } from 'lucide-react';
 
 interface UserProfile {
   name: string;
   date: string;
   oc: string;
+}
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+// Error Boundary Component to prevent white screen crashes
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: any): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("ErrorBoundary caught an error", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-screen w-screen bg-[#F5F3EF] flex items-center justify-center flex-col text-[#00A651]">
+          <AlertTriangle className="w-12 h-12 mb-4" />
+          <h1 className="text-xl font-bold uppercase tracking-widest">SYSTEM_CRASH_DETECTED</h1>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 border border-[#00A651] px-4 py-2 hover:bg-[#00A651] hover:text-[#F5F3EF] transition-colors font-bold"
+          >
+            REBOOT_SYSTEM
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
 }
 
 const GhostTramLogo = (props: React.SVGProps<SVGSVGElement>) => (
@@ -104,7 +146,7 @@ const BackgroundMusic = () => {
   );
 };
 
-export default function App() {
+const AppContent = () => {
   const { data: entries, isLoading, mutate } = useSWR<GuestEntry[]>(
     '/api/guestbook',
     fetchMessages,
@@ -268,7 +310,7 @@ export default function App() {
         </div>
 
         {/* 2b. Magnetic Field Sidebar (Right Column - Desktop Only) */}
-        <div className="hidden lg:flex w-[400px] xl:w-[500px] shrink-0 flex-col border-l border-[#00A651] relative z-0">
+        <div className="hidden lg:flex w-[600px] xl:w-[965px] shrink-0 flex-col border-l border-[#00A651] relative z-0">
            {/* Visualizer */}
            <MagneticField state={magneticState} username={profile.name} />
            
@@ -300,5 +342,13 @@ export default function App() {
       </div>
 
     </div>
+  );
+};
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
   );
 }
