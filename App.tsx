@@ -187,10 +187,10 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen bg-[#050505] p-2 md:p-6 flex flex-col overflow-hidden selection:bg-[#00D47E] selection:text-black font-sans relative z-10">
+    <div className="h-[100dvh] w-screen bg-[#050505] p-2 md:p-6 flex flex-col overflow-hidden selection:bg-[#00D47E] selection:text-black font-sans relative z-10">
       
       {/* Root Grid Container - Floating "Sheet" effect */}
-      <div className="flex-1 border border-[#00D47E] flex flex-col relative shadow-[0_0_20px_rgba(0,212,126,0.1)]">
+      <div className="flex-1 border border-[#00D47E] flex flex-col relative shadow-[0_0_20px_rgba(0,212,126,0.1)] min-h-0">
         
         {/* ROW 1: Header Grid (12 cols) */}
         <header className="grid grid-cols-12 h-32 md:h-48 border-b border-[#00D47E] shrink-0">
@@ -229,7 +229,7 @@ export default function App() {
         </header>
 
         {/* ROW 2: Main Content (Scrollable) */}
-        <main className="relative flex-1 overflow-hidden flex flex-col">
+        <main className="relative flex-1 min-h-0 flex flex-col">
           {/* Decorative Labels for Main Area */}
           <div className="absolute top-0 right-0 p-2 text-[10px] text-[#00D47E]/40 font-mono z-20 pointer-events-none">
             VIEWPORT_MAIN
