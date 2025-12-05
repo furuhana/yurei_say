@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Send, Loader2 } from 'lucide-react';
+import { CornerDownLeft, Loader2 } from 'lucide-react';
 
 interface InputBarProps {
   onSendMessage: (message: string) => Promise<void>;
@@ -52,9 +53,9 @@ export const GuestbookForm: React.FC<InputBarProps> = ({ onSendMessage, disabled
             SEND_CMD
           </div>
           {isSending ? (
-            <Loader2 className="w-6 h-6 animate-spin" />
+            <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
-            <Send className="w-6 h-6 group-hover:scale-110 transition-transform" />
+            <CornerDownLeft className="w-6 h-6 group-hover:scale-110 transition-transform" />
           )}
         </button>
       </form>

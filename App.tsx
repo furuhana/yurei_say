@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import useSWR from 'swr';
 import { GuestbookForm } from './components/GuestbookForm';
@@ -192,10 +193,10 @@ export default function App() {
       {/* Root Grid Container - Floating "Sheet" effect */}
       <div className="flex-1 border border-[#00D47E] flex flex-col relative shadow-[0_0_20px_rgba(0,212,126,0.1)] min-h-0">
         
-        {/* ROW 1: Header Grid (12 cols) */}
-        <header className="grid grid-cols-12 h-32 md:h-48 border-b border-[#00D47E] shrink-0">
-          {/* Cell 1: Main Title Area (75% / 9 cols) */}
-          <div className="col-span-9 p-4 md:p-8 flex flex-col justify-between relative border-r border-[#00D47E]">
+        {/* ROW 1: Header - Flexbox to create exact square on right */}
+        <header className="flex h-32 md:h-48 border-b border-[#00D47E] shrink-0">
+          {/* Main Title Area (Fills remaining space) */}
+          <div className="flex-1 p-4 md:p-8 flex flex-col justify-between relative">
             <div className="absolute top-2 left-2 text-[10px] opacity-60 font-mono tracking-widest">
               SYS_VER_2.0
             </div>
@@ -213,9 +214,11 @@ export default function App() {
             </div>
           </div>
 
-          {/* Cell 2: Profile Trigger (25% / 3 cols) */}
-          <div className="col-span-3 bg-diagonal-stripes relative group cursor-pointer hover:bg-[#00D47E]/10 transition-colors"
-               onClick={() => setIsModalOpen(true)}>
+          {/* Profile Trigger (Fixed Square on Right) */}
+          <div 
+            className="w-32 md:w-48 h-full border-l border-[#00D47E] bg-diagonal-stripes relative group cursor-pointer hover:bg-[#00D47E]/10 transition-colors shrink-0"
+            onClick={() => setIsModalOpen(true)}
+          >
             <div className="absolute top-2 right-2 text-[10px] opacity-60 font-mono tracking-widest bg-black px-1 border border-[#00D47E]/50">
               UID_ACCESS
             </div>
@@ -230,8 +233,8 @@ export default function App() {
 
         {/* ROW 2: Main Content (Scrollable) */}
         <main className="relative flex-1 min-h-0 flex flex-col">
-          {/* Decorative Labels for Main Area */}
-          <div className="absolute top-0 right-0 p-2 text-[10px] text-[#00D47E]/40 font-mono z-20 pointer-events-none">
+          {/* Decorative Label - Added background to prevent ghosting overlap */}
+          <div className="absolute top-0 right-0 p-2 text-[10px] text-[#00D47E]/40 font-mono z-20 pointer-events-none bg-[#050505] border-b border-l border-[#00D47E]/20">
             VIEWPORT_MAIN
           </div>
 
@@ -247,7 +250,7 @@ export default function App() {
         </main>
 
         {/* ROW 3: Footer Input Grid */}
-        <div className="h-20 border-t border-[#00D47E] relative shrink-0">
+        <div className="h-14 border-t border-[#00D47E] relative shrink-0">
            <GuestbookForm 
             onSendMessage={handleSendMessage} 
             disabled={isLoading} 
