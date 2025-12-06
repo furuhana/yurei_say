@@ -13,6 +13,7 @@
         /* SWISS GRID PALETTE */
         --swiss-cream: #F5F3EF;
         --swiss-green: #00A651;
+        --swiss-gray: #E9E9E9;
       }
 
       html, body, #root {
@@ -34,16 +35,10 @@
         border-radius: 0 !important;
       }
 
-      /* SWISS DIAGONAL PATTERN */
+      /* SWISS DIAGONAL PATTERN - MODIFIED TO SOLID GRAY */
       .bg-diagonal-stripes {
-        background-color: var(--swiss-cream);
-        background-image: repeating-linear-gradient(
-          45deg,
-          var(--swiss-green),
-          var(--swiss-green) 1px,
-          var(--swiss-cream) 1px,
-          var(--swiss-cream) 4px
-        );
+        background-color: #E9E9E9;
+        background-image: none;
       }
       
       /* Inverted Pattern for active states */
@@ -105,7 +100,12 @@
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "google-auth-library": "https://aistudiocdn.com/google-auth-library@^10.5.0",
     "google-spreadsheet": "https://aistudiocdn.com/google-spreadsheet@^5.0.2",
-    "swr": "https://aistudiocdn.com/swr@^2.3.2"
+    "swr": "https://aistudiocdn.com/swr@^2.3.2",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "path": "https://aistudiocdn.com/path@^0.12.7",
+    "vite": "https://aistudiocdn.com/vite@^7.2.6",
+    "url": "https://aistudiocdn.com/url@^0.11.4",
+    "lottie-react": "https://aistudiocdn.com/lottie-react@^2.4.1"
   }
 }
 </script>

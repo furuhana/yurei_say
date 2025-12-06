@@ -1,18 +1,24 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import { GuestbookForm } from './components/GuestbookForm';
 import { GuestbookList } from './components/GuestbookList';
 import { UserProfileModal } from './components/UserProfileModal';
+import { LoadingScreen } from './components/LoadingScreen'; // <--- 1. 引入加载组件
 import { fetchMessages, postMessage, deleteMessage } from './services/guestbookService';
 import { GuestEntry } from './types';
-import { Ghost, Play, Pause, Volume2 } from 'lucide-react';
+import { Volume2 } from 'lucide-react';
 
 interface UserProfile {
   name: string;
   date: string;
   oc: string;
 }
+
+const PixelGhost = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M4 11V22H8V20H10V22H14V20H16V22H20V11C20 6.58172 16.4183 3 12 3C7.58172 3 4 6.58172 4 11ZM8 10H6V12H8V10ZM18 10H16V12H18V10Z" />
+  </svg>
+);
 
 const GhostTramLogo = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 2829 5067" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -63,7 +69,6 @@ const BackgroundMusic = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Create audio instance
     const audio = new Audio('/bgm.mp3');
     audio.loop = true;
     audio.volume = 0.5;
@@ -115,6 +120,10 @@ const BackgroundMusic = () => {
 };
 
 export default function App() {
+  // --- 0. 加载屏状态 ---
+  // 控制是否显示 Lottie 动画，默认为 true (显示)
+  const [isLoadingScreenVisible, setIsLoadingScreenVisible] = useState(true);
+
   const { data: entries, isLoading, mutate } = useSWR<GuestEntry[]>(
     '/api/guestbook',
     fetchMessages,
@@ -174,11 +183,22 @@ export default function App() {
     showToast("RECORD DELETED");
   };
 
+  // --- 渲染逻辑 ---
+  
+  // 如果还在加载中，只显示 LoadingScreen
+  if (isLoadingScreenVisible) {
+    return (
+      <LoadingScreen 
+        onComplete={() => setIsLoadingScreenVisible(false)} 
+      />
+    );
+  }
+
   return (
-    <div className="h-[100dvh] w-screen bg-[#F5F3EF] flex flex-col overflow-hidden selection:bg-[#00A651] selection:text-[#F5F3EF] font-sans relative">
+    <div className="h-[100dvh] w-screen bg-[#F5F3EF] flex flex-col overflow-hidden selection:bg-[#00A651] selection:text-[#F5F3EF] font-sans relative animate-fade-in">
       
       {/* 1. Header Grid Row */}
-      <header className="flex h-24 md:h-32 border-b border-[#00A651] shrink-0 bg-[#F5F3EF] z-20">
+      <header className="flex h-24 md:h-32 shrink-0 bg-[#F5F3EF] z-20 border-b border-[#00A651]">
         
         {/* Title Area (Flex Grow) */}
         <div className="flex-1 p-4 md:p-6 flex items-center gap-4 md:gap-6 relative overflow-hidden">
@@ -215,13 +235,10 @@ export default function App() {
             ID_CARD
           </div>
           <div className="p-4 border border-[#00A651] bg-[#F5F3EF] group-hover:bg-[#00A651] group-hover:text-[#F5F3EF] transition-colors">
-            <Ghost className="w-8 h-8" />
+            <PixelGhost className="w-8 h-8" />
           </div>
         </div>
       </header>
-
-      {/* Filler Bar below Header */}
-      <div className="h-[6px] w-full bg-[#F5F3EF] border-b border-[#00A651] shrink-0"></div>
 
       {/* 2. Main Content (Scrollable List) */}
       <main className="flex-1 min-h-0 flex flex-col relative">
@@ -241,7 +258,7 @@ export default function App() {
       </main>
 
       {/* 3. Footer Input (Fixed) */}
-      <div className="h-12 border-t border-[#00A651] relative shrink-0 z-20">
+      <div className="h-24 border-t border-[#00A651] relative shrink-0 z-20">
          <GuestbookForm 
           onSendMessage={handleSendMessage} 
           disabled={isLoading} 
@@ -256,13 +273,4 @@ export default function App() {
         onSave={handleSaveProfile}
       />
 
-      {/* Toast Notification */}
-      <div className={`fixed bottom-20 right-8 z-[70] transition-all duration-300 transform ${toast.visible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0 pointer-events-none'}`}>
-        <div className="bg-[#00A651] text-[#F5F3EF] px-6 py-3 font-bold text-sm uppercase tracking-widest shadow-[4px_4px_0px_rgba(0,0,0,0.1)]">
-          {">"} {toast.message}
-        </div>
-      </div>
-
-    </div>
-  );
-}
+      {/* Toast Notification

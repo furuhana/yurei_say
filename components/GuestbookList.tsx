@@ -79,8 +79,8 @@ export const GuestbookList: React.FC<GuestbookListProps> = ({ entries, isLoading
         </div>
       ))}
       
-      {/* Footer Filler to visual end the list */}
-      <div className="flex-1 bg-diagonal-stripes min-h-[100px] border-b border-[#00A651]"></div>
+      {/* Footer Filler to visual end the list - Removed border-b */}
+      <div className="flex-1 bg-diagonal-stripes min-h-[100px]"></div>
     </div>
   );
 };
