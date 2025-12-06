@@ -1,25 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import useSWR, { mutate } from 'swr';
-import { GuestbookForm } from './components/GuestbookForm';
-import { GuestbookList } from './components/GuestbookList';
 import { UserProfileModal } from './components/UserProfileModal';
-import { LoadingScreen } from './components/LoadingScreen'; // <--- 1. 引入加载组件
+import { LoadingScreen } from './components/LoadingScreen'; 
 import { fetchMessages, postMessage, deleteMessage } from './services/guestbookService';
-import { GuestEntry } from './types';
-import { Volume2 } from 'lucide-react';
+import { GuestEntry, UserProfile } from './types';
+import { Ghost, Send, Reply, X, Volume2, Trash2 } from 'lucide-react';
 
-interface UserProfile {
-  name: string;
-  date: string;
-  oc: string;
-}
-
-const PixelGhost = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <path fillRule="evenodd" clipRule="evenodd" d="M4 11V22H8V20H10V22H14V20H16V22H20V11C20 6.58172 16.4183 3 12 3C7.58172 3 4 6.58172 4 11ZM8 10H6V12H8V10ZM18 10H16V12H18V10Z" />
-  </svg>
-);
-
+// --- 1. SVG 图标素材 ---
 const GhostTramLogo = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 2829 5067" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
     <path d="M1386.26 4136V3310H840.76V3558H1027.96C1122.57 3558 1199.26 3634.7 1199.26 3729.3V4136H1386.26Z" fill="currentColor"/>
@@ -63,7 +50,7 @@ const GhostTramLogo = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// BACKGROUND MUSIC COMPONENT
+// --- 2. 背景音乐模块 ---
 const BackgroundMusic = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -121,15 +108,16 @@ const BackgroundMusic = () => {
 
 export default function App() {
   // --- 0. 加载屏状态 ---
-  // 控制是否显示 Lottie 动画，默认为 true (显示)
   const [isLoadingScreenVisible, setIsLoadingScreenVisible] = useState(true);
 
-  const { data: entries, isLoading, mutate } = useSWR<GuestEntry[]>(
+  // --- 1. 数据获取 ---
+  const { data: rawEntries, isLoading, mutate } = useSWR<GuestEntry[]>(
     '/api/guestbook',
     fetchMessages,
     { refreshInterval: 10000, fallbackData: [] }
   );
 
+  // --- 2. 状态管理 ---
   const [profile, setProfile] = useState<UserProfile>({
     name: 'Ghost_' + Math.floor(Math.random() * 1000),
     date: '',
@@ -137,6 +125,9 @@ export default function App() {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState<{message: string, visible: boolean}>({ message: '', visible: false });
+  const [replyTargetId, setReplyTargetId] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('ghostTramProfile');
@@ -158,34 +149,58 @@ export default function App() {
     showToast("IDENTITY UPDATED");
   };
 
-  const handleSendMessage = async (messageText: string) => {
+  // --- 3. 数据处理：盖楼逻辑 (核心) ---
+  const structuredEntries = useMemo(() => {
+    if (!rawEntries) return [];
+    // 找到所有没有 reply_to 的根消息
+    const roots = rawEntries.filter(e => !e.reply_to);
+    // 把回复挂载到根消息下
+    return roots.map(root => {
+      const replies = rawEntries.filter(e => e.reply_to === root.id);
+      replies.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      return { ...root, replies };
+    });
+  }, [rawEntries]);
+
+  // --- 4. 发送逻辑 ---
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+    setIsSending(true);
+
     const optimisticEntry: GuestEntry = {
       id: Math.random().toString(36),
       name: profile.name,
-      message: messageText,
+      message: inputValue,
       date: profile.date,
-      oc: profile.oc
+      oc: profile.oc,
+      reply_to: replyTargetId || undefined
     };
-    const currentEntries = entries || [];
+    
+    const currentEntries = rawEntries || [];
     await mutate([optimisticEntry, ...currentEntries], false);
-    await postMessage(profile.name, messageText, profile.date, profile.oc);
-    await mutate();
-    showToast("MESSAGE TRANSMITTED");
+
+    try {
+      await postMessage(
+          profile.name, 
+          inputValue, 
+          profile.date, 
+          profile.oc, 
+          replyTargetId || undefined
+      );
+      await mutate();
+      showToast("MESSAGE TRANSMITTED");
+      setInputValue('');
+      setReplyTargetId(null);
+    } catch (error) {
+      console.error(error);
+      showToast("ERROR TRANSMITTING");
+    } finally {
+      setIsSending(false);
+    }
   };
 
-  const handleDeleteMessage = async (entry: GuestEntry) => {
-    if (!confirm('PERMANENTLY DELETE RECORD?')) return;
-    const currentEntries = entries || [];
-    const updatedEntries = currentEntries.filter(e => e.id !== entry.id);
-    await mutate(updatedEntries, false);
-    await deleteMessage(entry.id, profile.name);
-    await mutate();
-    showToast("RECORD DELETED");
-  };
-
-  // --- 渲染逻辑 ---
+  // --- 5. 渲染逻辑 ---
   
-  // 如果还在加载中，只显示 LoadingScreen
   if (isLoadingScreenVisible) {
     return (
       <LoadingScreen 
@@ -195,12 +210,10 @@ export default function App() {
   }
 
   return (
-    <div className="h-[100dvh] w-screen bg-[#F5F3EF] flex flex-col overflow-hidden selection:bg-[#00A651] selection:text-[#F5F3EF] font-sans relative animate-fade-in">
+    <div className="h-screen bg-[#F5F3EF] text-[#00A651] font-mono overflow-hidden flex flex-col animate-fade-in">
       
-      {/* 1. Header Grid Row */}
+      {/* Header */}
       <header className="flex h-24 md:h-32 shrink-0 bg-[#F5F3EF] z-20 border-b border-[#00A651]">
-        
-        {/* Title Area (Flex Grow) */}
         <div className="flex-1 p-4 md:p-6 flex items-center gap-4 md:gap-6 relative overflow-hidden">
           <GhostTramLogo className="w-12 md:w-16 h-auto text-[#00A651] shrink-0" />
           <div className="flex flex-col justify-center">
@@ -211,7 +224,7 @@ export default function App() {
               GHOST TRAM // SWISS GRID
             </h2>
           </div>
-          {/* ASCII Art Decor - Right Aligned in Title Area */}
+          {/* ASCII Art Decor */}
           <div className="hidden xl:flex ml-auto mr-8 flex-col items-end text-[#00A651] text-[10px] leading-[0.8] font-mono tracking-tighter opacity-80">
             <pre className="whitespace-pre">
               {`////////////////////////////
@@ -223,10 +236,8 @@ export default function App() {
           </div>
         </div>
 
-        {/* Audio Module (Fixed) */}
         <BackgroundMusic />
 
-        {/* Profile Trigger (Fixed) */}
         <div 
           className="w-32 md:w-48 h-full border-l border-[#00A651] bg-[#F5F3EF] relative group cursor-pointer hover:bg-[#00A651] hover:text-[#F5F3EF] transition-colors shrink-0 flex items-center justify-center"
           onClick={() => setIsModalOpen(true)}
@@ -235,37 +246,105 @@ export default function App() {
             ID_CARD
           </div>
           <div className="p-4 border border-[#00A651] bg-[#F5F3EF] group-hover:bg-[#00A651] group-hover:text-[#F5F3EF] transition-colors">
-            <PixelGhost className="w-8 h-8" />
+            <Ghost className="w-8 h-8" />
           </div>
         </div>
       </header>
 
-      {/* 2. Main Content (Scrollable List) */}
-      <main className="flex-1 min-h-0 flex flex-col relative">
-        {/* Sidebar Decor - Solid Color */}
+      {/* Main Content - Full Width List */}
+      <main className="flex-1 min-h-0 flex flex-col relative w-full">
+        {/* Sidebar Decors */}
         <div className="absolute left-0 top-0 bottom-0 w-4 md:w-8 border-r border-[#00A651] bg-[#F5F3EF] z-10 hidden md:block"></div>
         <div className="absolute right-0 top-0 bottom-0 w-4 md:w-8 border-l border-[#00A651] bg-[#F5F3EF] z-10 hidden md:block"></div>
 
-        {/* Scroll Container */}
-        <div className="flex-1 overflow-y-auto md:mx-8">
-           <GuestbookList 
-            entries={entries || []} 
-            isLoading={isLoading} 
-            isAdmin={profile.name === '露西'}
-            onDelete={handleDeleteMessage}
-          />
+        {/* Reply Indicator */}
+        {replyTargetId && (
+             <div className="sticky top-0 z-30 bg-[#00A651] text-white px-4 py-2 flex justify-between items-center shadow-md mx-4 md:mx-8">
+               <span className="text-sm font-bold tracking-widest">正在回复某条讯息...</span>
+               <button onClick={() => setReplyTargetId(null)}><X className="w-4 h-4"/></button>
+             </div>
+        )}
+
+        {/* --- 核心列表渲染区域 (Inline Rendering) --- */}
+        <div className="flex-1 overflow-y-auto md:mx-8 p-4 md:p-8 custom-scrollbar">
+           <div className="space-y-6 pb-12 max-w-4xl mx-auto">
+             {structuredEntries.map((entry: any) => (
+               <div key={entry.id} className="border border-[#00A651] bg-[#F5F3EF] p-6 shadow-[8px_8px_0px_#00A651] transition-transform hover:-translate-y-1">
+                  
+                  {/* Parent Message Header */}
+                  <div className="flex justify-between items-start mb-4 border-b border-[#00A651]/20 pb-2">
+                     <div className="flex items-center gap-3">
+                       <span className="bg-[#00A651] text-white px-2 py-1 text-xs font-bold uppercase tracking-wider">{entry.name}</span>
+                       <span className="text-xs text-[#00A651]/60 font-mono">{entry.date}</span>
+                       {entry.oc && <span className="border border-[#00A651] px-2 py-0.5 text-[10px] font-bold text-[#00A651] rounded-full uppercase">{entry.oc}</span>}
+                     </div>
+                     <button 
+                       onClick={() => setReplyTargetId(entry.id)}
+                       className="text-[#00A651] hover:bg-[#00A651] hover:text-white p-2 transition-colors group"
+                       title="回复"
+                     >
+                       <Reply className="w-4 h-4" />
+                     </button>
+                  </div>
+                  
+                  {/* Parent Message Body */}
+                  <p className="text-lg md:text-xl font-bold leading-relaxed text-[#00A651] whitespace-pre-wrap">{entry.message}</p>
+
+                  {/* Nested Replies Rendering (盖楼渲染) */}
+                  {entry.replies && entry.replies.length > 0 && (
+                    <div className="mt-6 pl-6 border-l-4 border-[#00A651]/20 space-y-4">
+                      {entry.replies.map((reply: any) => (
+                        <div key={reply.id} className="bg-[#00A651]/5 p-4 relative">
+                           <div className="flex items-center mb-2 gap-2">
+                             <span className="font-bold text-sm text-[#00A651]">↳ {reply.name}</span>
+                             <span className="text-[10px] text-[#00A651]/50 font-mono">{reply.date}</span>
+                           </div>
+                           <p className="text-md text-[#00A651]">{reply.message}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+               </div>
+             ))}
+             {/* Empty State */}
+             {(!structuredEntries || structuredEntries.length === 0) && !isLoading && (
+                <div className="text-center py-20 opacity-50">
+                    <div>NO SIGNALS DETECTED</div>
+                </div>
+             )}
+           </div>
         </div>
       </main>
 
-      {/* 3. Footer Input (Fixed) */}
+      {/* Footer Input */}
       <div className="h-24 border-t border-[#00A651] relative shrink-0 z-20">
-         <GuestbookForm 
-          onSendMessage={handleSendMessage} 
-          disabled={isLoading} 
-        />
+         <div className="flex gap-0 border border-[#00A651] h-full bg-white">
+            <div className="w-12 md:w-16 flex items-center justify-center border-r border-[#00A651] bg-[#F5F3EF] text-xs font-bold text-[#00A651] writing-vertical select-none">
+               INPUT
+            </div>
+            <textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              disabled={isSending}
+              placeholder={replyTargetId ? "输入回复内容..." : "输入讯息..."}
+              className="flex-1 px-6 py-4 bg-transparent outline-none text-[#00A651] placeholder:text-[#00A651]/30 font-bold resize-none text-lg"
+            />
+            <button 
+              onClick={handleSendMessage}
+              disabled={isSending}
+              className="w-20 md:w-24 bg-[#00A651] hover:bg-[#008f45] text-white flex items-center justify-center transition-colors disabled:opacity-50"
+            >
+              <Send className="w-6 h-6" />
+            </button>
+         </div>
       </div>
 
-      {/* Modals & Overlays */}
       <UserProfileModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -273,4 +352,40 @@ export default function App() {
         onSave={handleSaveProfile}
       />
 
-      {/* Toast Notification
+      <div className={`fixed bottom-28 right-8 z-[70] transition-all duration-300 transform ${toast.visible ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0 pointer-events-none'}`}>
+        <div className="bg-[#00A651] text-[#F5F3EF] px-6 py-3 font-bold text-sm uppercase tracking-widest shadow-[4px_4px_0px_rgba(0,0,0,0.1)] border border-[#F5F3EF]">
+          {">"} {toast.message}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.98); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.8s ease-out forwards;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 14px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #F5F3EF;
+          border-left: 1px solid #00A651;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #00A651;
+          border: 1px solid #00A651;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #008f45;
+        }
+        .writing-vertical {
+          writing-mode: vertical-rl;
+          text-orientation: mixed;
+        }
+      `}</style>
+
+    </div>
+  );
+}
